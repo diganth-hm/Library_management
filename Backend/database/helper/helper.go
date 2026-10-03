@@ -18,12 +18,12 @@ func Err(err error) {
 
 }
 func Addstu(student model.Student) {
-	stu, err := database.Collection.InsertOne(context.Background(), student)
+	stu, err := database.StudentCollection.InsertOne(context.Background(), student)
 	Err(err)
 	fmt.Println("sucssfully added :", stu)
 }
 func DisplayallStu() []model.Student {
-	cur, err := database.Collection.Find(context.Background(), bson.D{{}})
+	cur, err := database.StudentCollection.Find(context.Background(), bson.D{{}})
 	Err(err)
 	defer cur.Close(context.Background())
 	var students []model.Student
@@ -36,8 +36,14 @@ func DisplayallStu() []model.Student {
 	return students
 }
 
+func Deleteallstu() {
+	deletecount, err := database.StudentCollection.DeleteMany(context.Background(), bson.D{{}})
+	Err(err)
+	fmt.Println("Delete count for all students ", deletecount)
+}
+
 func Delonestu(usn string) {
-	deletecount, err := database.Collection.DeleteOne(context.Background(), bson.M{"usn": usn})
+	deletecount, err := database.StudentCollection.DeleteOne(context.Background(), bson.M{"usn": usn})
 	if err == mongo.ErrNoDocuments {
 		fmt.Println("No student Found with the usn :", usn)
 	} else {
@@ -49,7 +55,7 @@ func Delonestu(usn string) {
 
 func DisplayOnestu(usn string) model.Student {
 	var student model.Student
-	result := database.Collection.FindOne(context.Background(), bson.M{"usn": usn})
+	result := database.StudentCollection.FindOne(context.Background(), bson.M{"usn": usn})
 	err := result.Decode(&student)
 	if err == mongo.ErrNoDocuments {
 		fmt.Println("No student Found with the usn :", usn)
@@ -58,4 +64,28 @@ func DisplayOnestu(usn string) model.Student {
 	}
 	return student
 
+}
+
+//helper func for books
+
+func AddBook(book model.Book) {
+	books, err := database.BookCollection.InsertOne(context.Background(), book)
+	Err(err)
+	fmt.Println("sucssfully added :", books)
+}
+
+func DeleteoneBook(bkname string) {
+	deletecount, err := database.BookCollection.DeleteOne(context.Background(), bson.M{"name": bkname})
+	if err == mongo.ErrNoDocuments {
+		fmt.Println("No Book found in that name")
+	} else {
+		Err(err)
+	}
+	fmt.Println("deletcount is ", deletecount)
+}
+
+func DeleteAllBook() {
+	deletecount, err := database.BookCollection.DeleteMany(context.Background(), bson.D{{}})
+	Err(err)
+	fmt.Println("Delete count for all students ", deletecount)
 }
