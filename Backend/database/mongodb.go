@@ -1,6 +1,9 @@
 package database
 
 import (
+	"context"
+	"log"
+
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -16,7 +19,12 @@ func init() {
 
 	client, err := mongo.Connect(clientOptions)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+	//pinging mongodb to check the connection
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	Collection = client.Database(dbName).Collection(colName)
