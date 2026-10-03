@@ -10,9 +10,12 @@ import (
 
 const connectionURL = "mongodb://localhost:27017"
 const dbName = "library"
-const colName = "student"
 
-var Collection *mongo.Collection
+var (
+	StudentCollection   *mongo.Collection
+	BookCollection      *mongo.Collection
+	BorrowingCollection *mongo.Collection
+)
 
 func init() {
 	clientOptions := options.Client().ApplyURI(connectionURL)
@@ -27,5 +30,9 @@ func init() {
 		log.Fatal(err)
 	}
 
-	Collection = client.Database(dbName).Collection(colName)
+	database := client.Database(dbName)
+
+	StudentCollection = database.Collection("Student")
+	BookCollection = database.Collection("Book")
+	BorrowingCollection = database.Collection("Borrow")
 }
