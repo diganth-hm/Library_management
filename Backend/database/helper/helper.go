@@ -89,3 +89,21 @@ func DeleteAllBook() {
 	Err(err)
 	fmt.Println("Delete count for all students ", deletecount)
 }
+
+func DisplayAllBooks() []model.Book {
+	cur, err := database.BookCollection.Find(context.Background(), bson.D{{}})
+	Err(err)
+	defer cur.Close(context.Background())
+	var books []model.Book
+	for cur.Next(context.Background()) {
+		var book model.Book
+		err = cur.Decode(&book)
+		Err(err)
+		books = append(books, book)
+	}
+	return books
+}
+
+func DisplayoneBook(name string) model.Book {
+
+}
