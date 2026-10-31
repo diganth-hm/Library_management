@@ -4,63 +4,90 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/diganth-hm/libray/Backend/database"
 	model "github.com/diganth-hm/libray/Backend/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func Err(err error) {
-	if err != nil {
-		panic(err)
+type StudentRepository struct {
+	Collection *mongo.Collection
+}
+
+func NewStudentRepository(collection *mongo.Collection) *StudentRepository {
+	return &StudentRepository{
+		Collection: collection,
 	}
 
 }
-func Addstu(student model.Student) {
-	stu, err := database.StudentCollection.InsertOne(context.Background(), student)
-	Err(err)
+
+func (r *StudentRepository) Addstu(student model.Student) error {
+	stu, err := r.Collection.InsertOne(context.Background(), student)
+	if err != nil {
+		return err
+	}
 	fmt.Println("sucssfully added :", stu)
+	return nil
 }
-func DisplayallStu() []model.Student {
-	cur, err := database.StudentCollection.Find(context.Background(), bson.D{{}})
-	Err(err)
+func (r *StudentRepository) DisplayallStu() ([]model.Student, error) {
+	cur, err := r.Collection.Find(context.Background(), bson.D{{}})
+	if err != nil {
+		return nil, err
+	}
 	defer cur.Close(context.Background())
 	var students []model.Student
 	for cur.Next(context.Background()) {
 		var student model.Student
 		err = cur.Decode(&student)
-		Err(err)
+		if err != nil {
+			return nil, err
+		}
+		if err := cur.Err(); err != nil {
+			return nil, err
+		}
 		students = append(students, student)
 	}
-	return students
+	return students, nil
 }
 
-func Deleteallstu() {
-	deletecount, err := database.StudentCollection.DeleteMany(context.Background(), bson.D{{}})
-	Err(err)
+func (r *StudentRepository) Deleteallstu() error {
+	deletecount, err := r.Collection.DeleteMany(context.Background(), bson.D{{}})
+	if err != nil {
+		return err
+	}
 	fmt.Println("Delete count for all students ", deletecount)
+	return nil
 }
 
-func Delonestu(usn string) {
-	deletecount, err := database.StudentCollection.DeleteOne(context.Background(), bson.M{"usn": usn})
+func (r *StudentRepository) Delonestu(usn string) (bool, error) {
+	deletecount, err := r.Collection.DeleteOne(context.Background(), bson.M{"usn": usn})
 	if err == mongo.ErrNoDocuments {
 		fmt.Println("No student Found with the usn :", usn)
+		return false, err
 	} else {
-		Err(err)
+		if err != nil {
+			return false, err
+		}
 	}
-	fmt.Println("deletecount", deletecount)
+	fmt.Println("succesfully deleted", deletecount)
+	if deletecount.DeletedCount == 0 {
+		return false, nil
+	}
+	return true, nil
 
 }
 
-func DisplayOnestu(usn string) model.Student {
+func (r *StudentRepository) DisplayOnestu(usn string) (model.Student, error) {
 	var student model.Student
-	result := database.StudentCollection.FindOne(context.Background(), bson.M{"usn": usn})
+	result := r.Collection.FindOne(context.Background(), bson.M{"usn": usn})
 	err := result.Decode(&student)
 	if err == mongo.ErrNoDocuments {
 		fmt.Println("No student Found with the usn :", usn)
+		return model.Student{}, err
 	} else {
-		Err(err)
+		if err != nil {
+			return model.Student{}, err
+		}
 	}
-	return student
+	return student, nil
 
 }
